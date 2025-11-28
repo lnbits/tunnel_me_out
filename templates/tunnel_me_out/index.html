@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block page %}
+<div id="vue" class="q-pa-md">
+  <div class="row q-col-gutter-md">
+    <div class="col-12 col-md-6">
+      <q-card class="q-pa-md">
+        <div class="text-h6">Tunnel Me Out</div>
+        <div class="text-subtitle2 q-mt-sm">If you are running LNbits locally this extension can tunnel you out and issue you with a domain!</div>
+        <div class="q-mt-md">
+          <q-input v-model.number="days" type="number" min="1" label="Days to create a tunnel for" dense filled></q-input>
+        </div>
+        <div class="q-mt-md">
+          <q-btn color="primary" label="Top up tunnel" :loading="loading" @click="requestTunnel"></q-btn>
+        </div>
+      </q-card>
+    </div>
+    <div class="col-12 col-md-6" v-if="tunnel">
+      <q-card class="q-pa-md">
+        <div class="text-h6">Current tunnel</div>
+        <div class="q-mt-sm">Public URL: <code>${tunnel.public_url}</code></div>
+        <div class="q-mt-sm">SSH command:</div>
+        <q-input v-model="tunnel.ssh_command" type="textarea" autogrow readonly dense></q-input>
+        <div class="q-mt-md">
+          <q-linear-progress :value="progress" color="primary" track-color="grey-3" size="md"></q-linear-progress>
+          <div class="text-caption q-mt-xs">${progressLabel}</div>
+        </div>
+      </q-card>
+    </div>
+  </div>
+
+  <q-dialog v-model="invoiceDialog.show">
+    <q-card class="q-pa-md" style="min-width: 350px;">
+      <div class="text-h6">Pay to activate tunnel</div>
+      <div class="q-mt-sm word-break">${invoiceDialog.payment_request}</div>
+      <q-btn class="q-mt-md" icon="content_copy" label="Copy" @click="copyInvoice" flat></q-btn>
+      <div class="q-mt-md text-caption">Waiting for payment...</div>
+    </q-card>
+  </q-dialog>
+</div>
+{% endblock %}
