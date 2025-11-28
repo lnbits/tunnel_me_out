@@ -9,7 +9,6 @@ async def m002_tunnels(db):
         f"""
         CREATE TABLE tunnel_me_out.tunnels (
             id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
             tunnel_id TEXT NOT NULL,
             subdomain TEXT NOT NULL,
             remote_port INT NOT NULL,

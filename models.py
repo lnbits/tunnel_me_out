@@ -9,7 +9,6 @@ class TunnelRequest(BaseModel):
 
 class TunnelRecord(BaseModel):
     id: str
-    user_id: str
     tunnel_id: str
     subdomain: str
     remote_port: int

@@ -10,7 +10,7 @@ async def get_tunnel(user_id: str) -> TunnelRecord | None:
     return await db.fetchone(
         """
             SELECT * FROM tunnel_me_out.tunnels
-            WHERE user_id = :user_id
+            WHERE id = :user_id
             ORDER BY created_at DESC
             LIMIT 1
         """,
@@ -32,7 +32,8 @@ async def get_all_tunnels() -> list[TunnelRecord]:
 async def save_tunnel(user_id: str, data: TunnelRecord) -> TunnelRecord:
     record = data
     if not getattr(data, "id", None):
-        record = TunnelRecord(**data.dict(), id=urlsafe_short_hash(), user_id=user_id)
+        payload = data.dict(exclude={"id"})
+        record = TunnelRecord(**payload, id=user_id or urlsafe_short_hash())
     await db.upsert("tunnel_me_out.tunnels", record)
     return record
 
@@ -42,7 +43,7 @@ async def delete_tunnel(user_id: str, tunnel_id: str | None = None) -> None:
         await db.execute(
             """
                 DELETE FROM tunnel_me_out.tunnels
-                WHERE user_id = :user_id AND tunnel_id = :tunnel_id
+                WHERE id = :user_id AND tunnel_id = :tunnel_id
             """,
             {"user_id": user_id, "tunnel_id": tunnel_id},
         )
@@ -50,7 +51,7 @@ async def delete_tunnel(user_id: str, tunnel_id: str | None = None) -> None:
         await db.execute(
             """
                 DELETE FROM tunnel_me_out.tunnels
-                WHERE user_id = :user_id
+                WHERE id = :user_id
             """,
             {"user_id": user_id},
         )
