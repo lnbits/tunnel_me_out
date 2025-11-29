@@ -1,6 +1,7 @@
 {
-  "name": "tunnel_me_out",
-  "short_description": "One-click tunnel via satsy.co",
+  "id": "tunnel_me_out",
+  "name": "TunnelMeOut",
+  "short_description": "One-click tunnel out via lnpro.xyz",
   "tile": "/tunnel_me_out/static/image/tunnel.png",
   "version": "0.0.1",
   "min_lnbits_version": "1.1.0",
