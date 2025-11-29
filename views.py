@@ -13,7 +13,4 @@ def tunnel_renderer():
 
 @tunnel_router_frontend.get("/", response_class=HTMLResponse)
 async def index(req: Request, user: User = Depends(check_super_user)):
-    return tunnel_renderer().TemplateResponse(
-        "tunnel_me_out/index.html", {"request": req, "user": user.json()}
-    )
-
+    return tunnel_renderer().TemplateResponse("tunnel_me_out/index.html", {"request": req, "user": user.json()})

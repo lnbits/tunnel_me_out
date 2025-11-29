@@ -6,11 +6,11 @@ from datetime import datetime, timedelta, timezone
 
 import httpx
 import websockets
+from lnbits.settings import settings
 from loguru import logger
 
 from .crud import delete_tunnel, get_by_payment_hash, get_tunnel, save_tunnel
 from .models import TunnelRecord
-from lnbits.settings import settings
 
 REMOTE_BASE = "https://lnbits.lnpro.xyz"
 REMOTE_PUBLIC_ID = "aE4CBGPeRqcJufpWDVh53G"
@@ -79,9 +79,7 @@ async def _remote_create(user_id: str, days: int) -> TunnelRecord:
 async def _remote_topup(tunnel_id: str, days: int) -> dict:
     payload = {"tunnel_id": tunnel_id, "days": days}
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.put(
-            f"{REMOTE_BASE}/reverse_proxy/api/v1/payments/public/{tunnel_id}", json=payload
-        )
+        resp = await client.put(f"{REMOTE_BASE}/reverse_proxy/api/v1/payments/public/{tunnel_id}", json=payload)
         resp.raise_for_status()
         return resp.json()
 
@@ -217,7 +215,9 @@ async def _wait_for_payment(user_id: str, payment_hash: str) -> None:
                         try:
                             payload = json.loads(msg)
                         except json.JSONDecodeError:
-                            logger.warning(f"tunnel_me_out: failed to parse payment payload for {payment_hash}: {msg!s}")
+                            logger.warning(
+                                f"tunnel_me_out: failed to parse payment payload for {payment_hash}: {msg!s}"
+                            )
                             continue
                         if payload.get("status") == "success" or payload.get("paid"):
                             await activate_tunnel(user_id, payment_hash)

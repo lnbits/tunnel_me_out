@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from lnbits.core.models import User
 from lnbits.decorators import check_super_user
-from .models import TunnelRequest, TunnelResponse, TunnelRecord
+
+from .models import TunnelRecord, TunnelRequest, TunnelResponse
 from .services import activate_tunnel, create_or_topup, fetch_existing, ping_tunnel
 
 tunnel_router = APIRouter()

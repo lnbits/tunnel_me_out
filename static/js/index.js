@@ -39,7 +39,11 @@ window.app = Vue.createApp({
   methods: {
     async loadTunnel() {
       try {
-        const {data} = await LNbits.api.request('GET', '/tunnel_me_out/api/v1/tunnel', null)
+        const {data} = await LNbits.api.request(
+          'GET',
+          '/tunnel_me_out/api/v1/tunnel',
+          null
+        )
         this.tunnel = data.tunnel
         if (this.tunnel && this.tunnel.status === 'pending') {
           this.invoiceDialog.payment_request = this.tunnel.payment_request
@@ -57,7 +61,12 @@ window.app = Vue.createApp({
       this.loading = true
       try {
         const body = {days: this.days}
-        const {data} = await LNbits.api.request('POST', '/tunnel_me_out/api/v1/tunnel', null, body)
+        const {data} = await LNbits.api.request(
+          'POST',
+          '/tunnel_me_out/api/v1/tunnel',
+          null,
+          body
+        )
         this.tunnel = data
         this.invoiceDialog.payment_request = data.payment_request
         this.invoiceDialog.payment_hash = data.payment_hash
@@ -88,7 +97,7 @@ window.app = Vue.createApp({
       if (!hash) return
       const url = `${this.wsBase}/${hash}`
       this.ws = new WebSocket(url)
-      this.ws.onmessage = async (msg) => {
+      this.ws.onmessage = async msg => {
         try {
           const payload = JSON.parse(msg.data)
           if (payload && (payload.paid || payload.status === 'success')) {
@@ -98,12 +107,18 @@ window.app = Vue.createApp({
           console.error(err)
         }
       }
-      this.ws.onclose = () => { this.ws = null }
+      this.ws.onclose = () => {
+        this.ws = null
+      }
     },
     async checkReachability() {
       this.reachable = null
       try {
-        const {data} = await LNbits.api.request('GET', '/tunnel_me_out/api/v1/tunnel/ping', null)
+        const {data} = await LNbits.api.request(
+          'GET',
+          '/tunnel_me_out/api/v1/tunnel/ping',
+          null
+        )
         this.reachable = data.reachable
       } catch (err) {
         console.error(err)
@@ -113,7 +128,11 @@ window.app = Vue.createApp({
     async reconnectTunnel() {
       this.loading = true
       try {
-        const {data} = await LNbits.api.request('POST', '/tunnel_me_out/api/v1/tunnel/reconnect', null)
+        const {data} = await LNbits.api.request(
+          'POST',
+          '/tunnel_me_out/api/v1/tunnel/reconnect',
+          null
+        )
         this.tunnel = data
         this.$q.notify({type: 'positive', message: 'Tunnel reconnecting'})
         this.reachable = true

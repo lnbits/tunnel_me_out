@@ -1,62 +1,62 @@
 {
-    "id": "tunnel_me_out",
-    "name": "tunnel_me_out",
-    "stub_version": "v0.1.0",
-    "short_description": "One-click tunnel out",
-    "description": "Request and top up a reverse proxy via satsy.co.",
-    "owner_data": {
-        "name": "Tunnel",
-        "editable": false,
-        "fields": []
-    },
-    "client_data": {
-        "name": "Tunnel",
-        "editable": false,
-        "fields": []
-    },
-    "settings_data": {
-        "name": "Settings",
+  "id": "tunnel_me_out",
+  "name": "tunnel_me_out",
+  "stub_version": "v0.1.0",
+  "short_description": "One-click tunnel out",
+  "description": "Request and top up a reverse proxy via satsy.co.",
+  "owner_data": {
+    "name": "Tunnel",
+    "editable": false,
+    "fields": []
+  },
+  "client_data": {
+    "name": "Tunnel",
+    "editable": false,
+    "fields": []
+  },
+  "settings_data": {
+    "name": "Settings",
+    "editable": true,
+    "fields": [
+      {
+        "name": "field_name_1",
+        "type": "text",
+        "label": "",
+        "hint": "",
+        "optional": true,
         "editable": true,
-        "fields": [
-            {
-                "name": "field_name_1",
-                "type": "text",
-                "label": "",
-                "hint": "",
-                "optional": true,
-                "editable": true,
-                "searchable": true,
-                "sortable": true,
-                "fields": []
-            }
-        ],
-        "enabled": false,
-        "type": "user"
+        "searchable": true,
+        "sortable": true,
+        "fields": []
+      }
+    ],
+    "enabled": false,
+    "type": "user"
+  },
+  "public_page": {
+    "has_public_page": true,
+    "owner_data_fields": {
+      "name": "",
+      "description": ""
     },
-    "public_page": {
-        "has_public_page": true,
-        "owner_data_fields": {
-            "name": "",
-            "description": ""
-        },
-        "client_data_fields": {
-            "public_inputs": []
-        },
-        "action_fields": {
-            "generate_action": true,
-            "generate_payment_logic": true,
-            "wallet_id": "wallet",
-            "currency": "",
-            "amount": "amount",
-            "amount_source": "client_data",
-            "paid_flag": "paid"
-        }
+    "client_data_fields": {
+      "public_inputs": []
     },
-    "preview_action": {
-        "is_preview_mode": false,
-        "is_settings_preview": false,
-        "is_owner_data_preview": false,
-        "is_client_data_preview": false,
-        "is_public_page_preview": false
+    "action_fields": {
+      "generate_action": true,
+      "generate_payment_logic": true,
+      "wallet_id": "wallet",
+      "currency": "",
+      "amount": "amount",
+      "amount_source": "client_data",
+      "paid_flag": "paid"
     }
+  },
+  "preview_action": {
+    "is_preview_mode": false,
+    "is_settings_preview": false,
+    "is_owner_data_preview": false,
+    "is_client_data_preview": false,
+    "is_public_page_preview": false
+  }
 }
