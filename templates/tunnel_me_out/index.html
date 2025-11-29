@@ -14,7 +14,7 @@ window_vars(user) }}
     <div class="col-12 col-md-6">
       <q-card class="q-pa-md">
         <div class="text-h6">Tunnel Me Out</div>
-        <div class="text-subtitle2 q-mt-sm">If you are running LNbits locally this extension can tunnel you out and issue you with a domain!</div>
+        <div class="text-subtitle2 q-mt-sm">Tunnel out your local LNbits and get a subdomain, only 200sats per day!</div>
         <div class="q-mt-md">
           <q-input v-model.number="days" type="number" min="1" label="Days to create a tunnel for" dense filled></q-input>
         </div>
@@ -26,13 +26,33 @@ window_vars(user) }}
     <div class="col-12 col-md-6" v-if="tunnel">
       <q-card class="q-pa-md">
         <div class="text-h6">Current tunnel</div>
-        <div class="q-mt-sm">Public URL: <code>${tunnel.public_url}</code></div>
-        <div class="q-mt-sm">SSH command:</div>
-        <q-input v-model="tunnel.ssh_command" type="textarea" autogrow readonly dense></q-input>
+        <div class="q-mt-sm">
+          Status:
+          <q-badge :color="tunnel.status === 'active' ? 'positive' : 'warning'" align="middle">
+            ${tunnel.status}
+          </q-badge>
+          <q-badge v-if="reachable === false" color="negative" class="q-ml-sm">offline</q-badge>
+        </div>
+        <div class="q-mt-sm">Public URL: <a :href="tunnel.public_url" target="_blank" rel="noopener noreferrer"><code>${tunnel.public_url}</code></a></div>
+        <div class="q-mt-sm">Expires: ${expiresLabel}</div>
+        <div class="q-mt-sm">
+          <q-btn icon="content_copy" label="Copy connect script" @click="copyScript" flat></q-btn>
+          <q-btn
+            v-if="reachable === false"
+            class="q-ml-sm"
+            color="warning"
+            label="Reconnect tunnel"
+            :loading="loading"
+            @click="reconnectTunnel"
+            flat
+          ></q-btn>
+        </div>
         <div class="q-mt-md">
           <q-linear-progress :value="progress" color="primary" track-color="grey-3" size="md"></q-linear-progress>
           <div class="text-caption q-mt-xs">${progressLabel}</div>
         </div>
+        <small>Checkout https://lnpro.xyz for a more generic solution.<br/>
+        This service is provided as-is without any guarantees. Use at your own risk.</smal>
       </q-card>
     </div>
   </div>
@@ -40,9 +60,9 @@ window_vars(user) }}
   <q-dialog v-model="invoiceDialog.show">
     <q-card class="q-pa-md" style="min-width: 350px;">
       <div class="text-h6">Pay to activate tunnel</div>
-      <div class="q-mt-sm word-break">${invoiceDialog.payment_request}</div>
-      <q-btn class="q-mt-md" icon="content_copy" label="Copy" @click="copyInvoice" flat></q-btn>
-      <div class="q-mt-md text-caption">Waiting for payment...</div>
+      <lnbits-qrcode
+        :value="invoiceDialog.payment_request"
+      ></lnbits-qrcode>
     </q-card>
   </q-dialog>
 </div>

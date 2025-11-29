@@ -4,7 +4,7 @@ import sqlite3
 from loguru import logger
 
 from .crud import get_all_tunnels
-from .services import activate_tunnel
+from .services import activate_tunnel, ensure_payment_listener
 
 
 async def rehydrate_and_activate():
@@ -12,7 +12,11 @@ async def rehydrate_and_activate():
         try:
             tunnels = await get_all_tunnels()
             for t in tunnels:
-                await activate_tunnel(t.user_id, t.payment_hash)
+                if t.status == "pending":
+                    ensure_payment_listener(t.id, t.payment_hash)
+                    continue
+                if t.status == "active":
+                    await activate_tunnel(t.id)
         except sqlite3.OperationalError as exc:
             if "no such table: tunnel_me_out.tunnels" in str(exc):
                 # migrations not applied yet; skip quietly until next run

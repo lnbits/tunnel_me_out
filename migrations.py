@@ -27,3 +27,20 @@ async def m002_tunnels(db):
         );
     """
     )
+
+
+async def m003_local_binding(db):
+    """Add local binding host/port for tunnels."""
+
+    await db.execute(
+        """
+        ALTER TABLE tunnel_me_out.tunnels
+        ADD COLUMN local_host TEXT NOT NULL DEFAULT 'localhost';
+        """
+    )
+    await db.execute(
+        """
+        ALTER TABLE tunnel_me_out.tunnels
+        ADD COLUMN local_port INT NOT NULL DEFAULT 5000;
+        """
+    )

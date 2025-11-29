@@ -34,7 +34,14 @@ async def save_tunnel(user_id: str, data: TunnelRecord) -> TunnelRecord:
     if not getattr(data, "id", None):
         payload = data.dict(exclude={"id"})
         record = TunnelRecord(**payload, id=user_id or urlsafe_short_hash())
-    await db.upsert("tunnel_me_out.tunnels", record)
+
+    existing = await get_tunnel(user_id)
+    if existing:
+        # Preserve original creation time when updating.
+        record.created_at = existing.created_at
+        await db.update("tunnel_me_out.tunnels", record, where="WHERE id = :id")
+    else:
+        await db.insert("tunnel_me_out.tunnels", record)
     return record
 
 

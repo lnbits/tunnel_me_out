@@ -22,6 +22,8 @@ class TunnelRecord(BaseModel):
     payment_request: str
     status: str
     days: int
+    local_host: str = Field(default="localhost")
+    local_port: int = Field(default=5000)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
