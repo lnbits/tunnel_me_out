@@ -18,6 +18,7 @@ REMOTE_WS_BASE = "wss://lnbits.lnpro.xyz/api/v1/ws"
 PING_TIMEOUT = 8.0
 
 _payment_watchers: dict[str, asyncio.Task] = {}
+_ssh_processes: dict[str, subprocess.Popen] = {}
 
 
 def _cancel_payment_listener(payment_hash: str | None) -> None:
@@ -157,6 +158,13 @@ def _write_key(user_id: str, tunnel: TunnelRecord) -> tuple[str, str]:
 
 
 def _launch_ssh(tunnel: TunnelRecord, key_path: str, known_hosts_path: str) -> None:
+    existing_proc = _ssh_processes.get(tunnel.tunnel_id)
+    if existing_proc and existing_proc.poll() is None:
+        logger.info(f"tunnel_me_out: ssh already running for tunnel {tunnel.tunnel_id}")
+        return
+    if existing_proc and existing_proc.poll() is not None:
+        _ssh_processes.pop(tunnel.tunnel_id, None)
+
     cmd = [
         "ssh",
         "-i",
@@ -165,13 +173,16 @@ def _launch_ssh(tunnel: TunnelRecord, key_path: str, known_hosts_path: str) -> N
         f"UserKnownHostsFile={known_hosts_path}",
         "-o",
         "StrictHostKeyChecking=accept-new",
+        "-o",
+        "ExitOnForwardFailure=yes",
         "-N",
         "-R",
         f"{tunnel.remote_port}:{tunnel.local_host}:{tunnel.local_port}",
         f"{tunnel.ssh_user}@{tunnel.ssh_host}",
     ]
     try:
-        subprocess.Popen(cmd)
+        proc = subprocess.Popen(cmd)
+        _ssh_processes[tunnel.tunnel_id] = proc
         logger.info(f"tunnel_me_out: launched ssh for tunnel {tunnel.tunnel_id}")
     except Exception as exc:
         logger.error(f"tunnel_me_out: failed to launch ssh: {exc}")
