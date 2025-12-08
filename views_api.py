@@ -16,7 +16,7 @@ async def get_tunnel(user: User = Depends(check_super_user)) -> TunnelResponse:
 
 @tunnel_router.post("/api/v1/tunnel", response_model=TunnelRecord)
 async def create_tunnel(req: TunnelRequest, user: User = Depends(check_super_user)) -> TunnelRecord:
-    return await create_or_topup(user.id, req.days)
+    return await create_or_topup(user.id, req.days, req.local_host, req.local_port)
 
 
 @tunnel_router.post("/api/v1/tunnel/confirm", response_model=TunnelRecord)

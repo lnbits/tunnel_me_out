@@ -51,14 +51,16 @@ def _default_local_binding() -> tuple[str, int]:
     return host, port
 
 
-def _apply_local_binding(tunnel: TunnelRecord) -> TunnelRecord:
+def _apply_local_binding(
+    tunnel: TunnelRecord, override_host: str | None = None, override_port: int | None = None
+) -> TunnelRecord:
     host, port = _default_local_binding()
-    tunnel.local_host = host
-    tunnel.local_port = port
+    tunnel.local_host = override_host or tunnel.local_host or host
+    tunnel.local_port = override_port or tunnel.local_port or port
     return tunnel
 
 
-async def _remote_create(user_id: str, days: int) -> TunnelRecord:
+async def _remote_create(user_id: str, days: int, local_host: str | None, local_port: int | None) -> TunnelRecord:
     payload = {"public_id": REMOTE_PUBLIC_ID, "days": days, "client_note": user_id}
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(f"{REMOTE_BASE}/reverse_proxy/api/v1/tunnels", json=payload)
@@ -66,13 +68,12 @@ async def _remote_create(user_id: str, days: int) -> TunnelRecord:
         data = resp.json()
     expires = data.get("expires_at") or datetime.now(timezone.utc).isoformat()
     data["expires_at"] = expires
-    host, port = _default_local_binding()
     return TunnelRecord(
         id="",
         status="pending",
         days=days,
-        local_host=host,
-        local_port=port,
+        local_host=local_host,
+        local_port=local_port,
         **data,
     )
 
@@ -85,7 +86,9 @@ async def _remote_topup(tunnel_id: str, days: int) -> dict:
         return resp.json()
 
 
-async def create_or_topup(user_id: str, days: int) -> TunnelRecord:
+async def create_or_topup(
+    user_id: str, days: int, local_host: str | None = None, local_port: int | None = None
+) -> TunnelRecord:
     existing = await fetch_existing(user_id)
     if existing and not existing.prune_ready():
         pay = await _remote_topup(existing.tunnel_id, days)
@@ -94,14 +97,14 @@ async def create_or_topup(user_id: str, days: int) -> TunnelRecord:
         existing.days = days
         existing.status = "pending"
         existing.updated_at = datetime.now(timezone.utc)
-        _apply_local_binding(existing)
+        _apply_local_binding(existing, local_host, local_port)
         await save_tunnel(user_id, existing)
         ensure_payment_listener(user_id, existing.payment_hash)
         return existing
 
-    new_tunnel = await _remote_create(user_id, days)
+    new_tunnel = await _remote_create(user_id, days, local_host, local_port)
     new_tunnel.id = user_id
-    _apply_local_binding(new_tunnel)
+    _apply_local_binding(new_tunnel, local_host, local_port)
     new_tunnel.updated_at = datetime.now(timezone.utc)
     await save_tunnel(user_id, new_tunnel)
     ensure_payment_listener(user_id, new_tunnel.payment_hash)
@@ -157,13 +160,20 @@ def _write_key(user_id: str, tunnel: TunnelRecord) -> tuple[str, str]:
     return key_path, known_hosts_path
 
 
-def _launch_ssh(tunnel: TunnelRecord, key_path: str, known_hosts_path: str) -> None:
-    existing_proc = _ssh_processes.get(tunnel.tunnel_id)
-    if existing_proc and existing_proc.poll() is None:
-        logger.info(f"tunnel_me_out: ssh already running for tunnel {tunnel.tunnel_id}")
+def _stop_ssh(tunnel_id: str) -> None:
+    proc = _ssh_processes.pop(tunnel_id, None)
+    if not proc:
         return
-    if existing_proc and existing_proc.poll() is not None:
-        _ssh_processes.pop(tunnel.tunnel_id, None)
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
+
+def _launch_ssh(tunnel: TunnelRecord, key_path: str, known_hosts_path: str) -> None:
+    _stop_ssh(tunnel.tunnel_id)
 
     cmd = [
         "ssh",

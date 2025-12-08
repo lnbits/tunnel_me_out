@@ -5,6 +5,8 @@ window.app = Vue.createApp({
   data: function () {
     return {
       days: 1,
+      localHost: 'localhost',
+      localPort: 5000,
       wsBase: 'wss://lnbits.lnpro.xyz/api/v1/ws',
       loading: false,
       tunnel: null,
@@ -45,6 +47,10 @@ window.app = Vue.createApp({
           null
         )
         this.tunnel = data.tunnel
+        if (this.tunnel) {
+          this.localHost = this.tunnel.local_host || this.localHost
+          this.localPort = this.tunnel.local_port || this.localPort
+        }
         if (this.tunnel && this.tunnel.status === 'pending') {
           this.invoiceDialog.payment_request = this.tunnel.payment_request
           this.invoiceDialog.payment_hash = this.tunnel.payment_hash
@@ -60,7 +66,11 @@ window.app = Vue.createApp({
     async requestTunnel() {
       this.loading = true
       try {
-        const body = {days: this.days}
+        const body = {
+          days: this.days,
+          local_host: this.localHost || undefined,
+          local_port: this.localPort || undefined
+        }
         const {data} = await LNbits.api.request(
           'POST',
           '/tunnel_me_out/api/v1/tunnel',
@@ -68,6 +78,8 @@ window.app = Vue.createApp({
           body
         )
         this.tunnel = data
+        this.localHost = this.tunnel.local_host || this.localHost
+        this.localPort = this.tunnel.local_port || this.localPort
         this.invoiceDialog.payment_request = data.payment_request
         this.invoiceDialog.payment_hash = data.payment_hash
         this.invoiceDialog.show = true

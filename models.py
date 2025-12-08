@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 class TunnelRequest(BaseModel):
     days: int = Field(gt=0)
+    local_host: str | None = Field(default=None)
+    local_port: int | None = Field(default=None, gt=0, lt=65536)
 
 
 class TunnelRecord(BaseModel):

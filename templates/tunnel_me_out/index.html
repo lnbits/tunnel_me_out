@@ -23,6 +23,35 @@
             filled
           ></q-input>
         </div>
+        <q-expansion-item
+          class="q-mt-md"
+          icon="tune"
+          label="Advanced"
+          header-class="text-subtitle1"
+        >
+          <div class="row q-col-gutter-md q-pt-sm">
+            <div class="col-12 col-md-7">
+              <q-input
+                v-model="localHost"
+                label="Local host"
+                hint="Host where LNbits is reachable (defaults to localhost)"
+                dense
+                filled
+              ></q-input>
+            </div>
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model.number="localPort"
+                type="number"
+                min="1"
+                max="65535"
+                label="Local port"
+                dense
+                filled
+              ></q-input>
+            </div>
+          </div>
+        </q-expansion-item>
         <div class="q-mt-md">
           <q-btn
             color="primary"
