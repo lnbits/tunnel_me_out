@@ -1,4 +1,6 @@
 import asyncio
+import hashlib
+import hmac
 import json
 import os
 import subprocess
@@ -19,6 +21,12 @@ PING_TIMEOUT = 8.0
 
 _payment_watchers: dict[str, asyncio.Task] = {}
 _ssh_processes: dict[str, subprocess.Popen] = {}
+
+
+def _hash_client_note(user_id: str) -> str:
+    secret = settings.auth_secret_key or ""
+    digest = hmac.new(secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()
+    return digest
 
 
 def _cancel_payment_listener(payment_hash: str | None) -> None:
@@ -61,7 +69,11 @@ def _apply_local_binding(
 
 
 async def _remote_create(user_id: str, days: int, local_host: str | None, local_port: int | None) -> TunnelRecord:
-    payload = {"public_id": REMOTE_PUBLIC_ID, "days": days, "client_note": user_id}
+    payload = {
+        "public_id": REMOTE_PUBLIC_ID,
+        "days": days,
+        "client_note": _hash_client_note(user_id),
+    }
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(f"{REMOTE_BASE}/reverse_proxy/api/v1/tunnels", json=payload)
         resp.raise_for_status()
