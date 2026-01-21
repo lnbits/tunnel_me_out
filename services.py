@@ -69,6 +69,7 @@ def _apply_local_binding(
 
 
 async def _remote_create(user_id: str, days: int, local_host: str | None, local_port: int | None) -> TunnelRecord:
+    default_host, default_port = _default_local_binding()
     payload = {
         "public_id": REMOTE_PUBLIC_ID,
         "days": days,
@@ -84,8 +85,8 @@ async def _remote_create(user_id: str, days: int, local_host: str | None, local_
         id="",
         status="pending",
         days=days,
-        local_host=local_host,
-        local_port=local_port,
+        local_host=local_host or default_host,
+        local_port=local_port or default_port,
         **data,
     )
 
