@@ -1,3 +1,10 @@
-# Tunnel Me Out
+Get a public URL for your local LNbits instance via a paid reverse proxy tunnel.
 
-If you are running LNbits locally, this extension lets you request a hosted reverse proxy (via lnpro.xyz) and gives you a public URL. Choose how many days you want, pay the invoice, and it will connect out automatically using the provided SSH key.
+Its functions include:
+
+- Requesting hosted reverse proxy connections via lnpro.xyz
+- Paying for tunnel duration in days via Lightning
+- Automatically connecting using provided SSH keys
+- Exposing local LNbits to the public internet
+
+A convenient solution for home node operators who need to make their local LNbits instance accessible from anywhere without complex networking setup.

@@ -1,9 +1,11 @@
 {
   "id": "tunnel_me_out",
-  "name": "TunnelMeOut",
-  "short_description": "One-click tunnel out via lnpro.xyz",
-  "tile": "/tunnel_me_out/static/image/tunnel.png",
   "version": "0.0.1",
+  "name": "TunnelMeOut",
+  "repo": "https://github.com/lnbits/tunnel_me_out",
+  "short_description": "One-click tunnel out via lnpro.xyz",
+  "description": "",
+  "tile": "/tunnel_me_out/static/image/tunnel.png",
   "min_lnbits_version": "1.1.0",
   "contributors": [
     {
@@ -12,8 +14,20 @@
       "role": "Emotional support"
     }
   ],
-  "images": [],
+  "images": [
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/tpos/main/static/image/tunnelmeout_thumbnail.png",
+      "link": "https://www.youtube.com/watch?v=PFAHKxvgI9Y"
+    },
+    {
+      "uri": "https://raw.githubusercontent.com/lnbits/tpos/main/static/image/1.png"
+    }
+  ],
   "description_md": "https://raw.githubusercontent.com/lnbits/tunnel_me_out/main/description.md",
   "terms_and_conditions_md": "https://raw.githubusercontent.com/lnbits/tunnel_me_out/main/toc.md",
-  "license": "MIT"
+  "license": "MIT",
+  "paid_features": "",
+  "tags": ["Utilities"],
+  "donate": "",
+  "hidden": false
 }
