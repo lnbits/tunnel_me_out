@@ -8,17 +8,17 @@
   <div class="row q-col-gutter-md">
     <div class="col-12 col-md-6">
       <q-card class="q-pa-md">
-        <div class="text-h6">Tunnel Me Out</div>
-        <div class="text-subtitle2 q-mt-sm">
-          Tunnel out your local LNbits and get a subdomain, only 200sats per
-          day!
-        </div>
+        <div class="text-h6" v-text="$t('tunnel_me_out.title')"></div>
+        <div
+          class="text-subtitle2 q-mt-sm"
+          v-text="$t('tunnel_me_out.subtitle')"
+        ></div>
         <div class="q-mt-md">
           <q-input
             v-model.number="days"
             type="number"
             min="1"
-            label="Days to create a tunnel for"
+            :label="$t('tunnel_me_out.days_label')"
             dense
             filled
           ></q-input>
@@ -26,15 +26,15 @@
         <q-expansion-item
           class="q-mt-md"
           icon="tune"
-          label="Advanced"
+          :label="$t('tunnel_me_out.advanced')"
           header-class="text-subtitle1"
         >
           <div class="row q-col-gutter-md q-pt-sm">
             <div class="col-12 col-md-7">
               <q-input
                 v-model="localHost"
-                label="Local host"
-                hint="Host where LNbits is reachable (defaults to localhost)"
+                :label="$t('tunnel_me_out.local_host')"
+                :hint="$t('tunnel_me_out.local_host_hint')"
                 dense
                 filled
               ></q-input>
@@ -45,7 +45,7 @@
                 type="number"
                 min="1"
                 max="65535"
-                label="Local port"
+                :label="$t('tunnel_me_out.local_port')"
                 dense
                 filled
               ></q-input>
@@ -55,7 +55,7 @@
         <div class="q-mt-md">
           <q-btn
             color="primary"
-            label="Top up tunnel"
+            :label="$t('tunnel_me_out.top_up_tunnel')"
             :loading="loading"
             @click="requestTunnel"
           ></q-btn>
@@ -64,30 +64,32 @@
     </div>
     <div class="col-12 col-md-6" v-if="tunnel">
       <q-card class="q-pa-md">
-        <div class="text-h6">Current tunnel</div>
+        <div class="text-h6" v-text="$t('tunnel_me_out.current_tunnel')"></div>
         <div class="q-mt-sm">
-          Status:
+          <span v-text="$t('tunnel_me_out.status')"></span>:
           <q-badge
             :color="tunnel.status === 'active' ? 'positive' : 'warning'"
             align="middle"
           >
-            ${tunnel.status}
+            ${statusLabel(tunnel.status)}
           </q-badge>
           <q-badge v-if="reachable === false" color="negative" class="q-ml-sm"
-            >offline</q-badge
+            >${$t('tunnel_me_out.offline')}</q-badge
           >
         </div>
         <div class="q-mt-sm">
-          Public URL:
+          <span v-text="$t('tunnel_me_out.public_url')"></span>:
           <a :href="tunnel.public_url" target="_blank" rel="noopener noreferrer"
             ><code>${tunnel.public_url}</code></a
           >
         </div>
-        <div class="q-mt-sm">Expires: ${expiresLabel}</div>
+        <div class="q-mt-sm">
+          ${$t('tunnel_me_out.expires')}: ${expiresLabel}
+        </div>
         <div class="q-mt-sm">
           <q-btn
             icon="content_copy"
-            label="Copy connect script"
+            :label="$t('tunnel_me_out.copy_connect_script')"
             @click="copyScript"
             flat
           ></q-btn>
@@ -95,7 +97,7 @@
             v-if="reachable === false"
             class="q-ml-sm"
             color="warning"
-            label="Reconnect tunnel"
+            :label="$t('tunnel_me_out.reconnect_tunnel')"
             :loading="loading"
             @click="reconnectTunnel"
             flat
@@ -111,9 +113,8 @@
           <div class="text-caption q-mt-xs">${progressLabel}</div>
         </div>
         <small
-          >Checkout https://lnpro.xyz for a more generic solution.<br />
-          This service is provided as-is without any guarantees. Use at your own
-          risk.</small
+          >${$t('tunnel_me_out.footer_line_1')}<br />
+          ${$t('tunnel_me_out.footer_line_2')}</small
         >
       </q-card>
     </div>
@@ -121,7 +122,7 @@
 
   <q-dialog v-model="invoiceDialog.show">
     <q-card class="q-pa-md" style="min-width: 350px">
-      <div class="text-h6">Pay to activate tunnel</div>
+      <div class="text-h6" v-text="$t('tunnel_me_out.pay_to_activate')"></div>
       <lnbits-qrcode :value="invoiceDialog.payment_request"></lnbits-qrcode>
     </q-card>
   </q-dialog>
