@@ -3,7 +3,8 @@
     {
       "id": "tunnel_me_out",
       "organisation": "lnbits",
-      "repository": "tunnel_me_out"
+      "repository": "tunnel_me_out",
+      "super_user_only": true
     }
   ]
 }
