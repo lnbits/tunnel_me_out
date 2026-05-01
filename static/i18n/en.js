@@ -1,0 +1,31 @@
+window.localisation.en.tunnel_me_out = {
+  title: 'Tunnel Me Out',
+  subtitle:
+    'Tunnel out your local LNbits and get a subdomain, only 200 sats per day!',
+  days_label: 'Days to create a tunnel for',
+  advanced: 'Advanced',
+  local_host: 'Local host',
+  local_host_hint: 'Host where LNbits is reachable (defaults to localhost)',
+  local_port: 'Local port',
+  top_up_tunnel: 'Top up tunnel',
+  current_tunnel: 'Current tunnel',
+  status: 'Status',
+  status_active: 'active',
+  status_pending: 'pending',
+  status_inactive: 'inactive',
+  offline: 'offline',
+  public_url: 'Public URL',
+  expires: 'Expires',
+  expires_at_label: 'Expires at {date}',
+  no_tunnel_yet: 'No tunnel yet',
+  not_set: 'Not set',
+  copy_connect_script: 'Copy connect script',
+  reconnect_tunnel: 'Reconnect tunnel',
+  tunnel_reconnecting: 'Tunnel reconnecting',
+  payment_request_copied: 'Payment request copied',
+  command_copied: 'Command copied to clipboard',
+  footer_line_1: 'Check out https://lnpro.xyz for a more generic solution.',
+  footer_line_2:
+    'This service is provided as-is without any guarantees. Use at your own risk.',
+  pay_to_activate: 'Pay to activate tunnel'
+}
