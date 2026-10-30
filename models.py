@@ -37,4 +37,4 @@ class TunnelRecord(BaseModel):
 
 
 class TunnelResponse(BaseModel):
-    tunnel: TunnelRecord | None
+    tunnel: TunnelRecord | None = None

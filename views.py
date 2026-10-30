@@ -21,4 +21,6 @@ async def index(req: Request, user: User = Depends(check_user_exists)):
             detail="User not authorized. No super user privileges.",
         )
 
-    return tunnel_renderer().TemplateResponse("tunnel_me_out/index.html", {"request": req, "user": user.json()})
+    return tunnel_renderer().TemplateResponse(
+        "tunnel_me_out/index.html", {"request": req, "user": user.model_dump_json()}
+    )

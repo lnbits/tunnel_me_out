@@ -1,11 +1,11 @@
 [project]
 name = "reverse_proxy"
-version = "0.0.4"
+version = "0.1.0"
 requires-python = ">=3.10,<3.13"
 description = "<<Internal extension for allowing ssh tunnels>>"
 authors = []
 urls = { Homepage = "https://lnbits.com", Repository = "https://github.com/lnbits/tpos" }
-dependencies = [ "lnbits>1" ]
+dependencies = [ "lnbits>=1.7.0rc1" ]
 
 [tool.poetry]
 package-mode = false

@@ -32,7 +32,7 @@ async def get_all_tunnels() -> list[TunnelRecord]:
 async def save_tunnel(user_id: str, data: TunnelRecord) -> TunnelRecord:
     record = data
     if not getattr(data, "id", None):
-        payload = data.dict(exclude={"id"})
+        payload = data.model_dump(exclude={"id"})
         record = TunnelRecord(**payload, id=user_id or urlsafe_short_hash())
 
     existing = await get_tunnel(user_id)
