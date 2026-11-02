@@ -29,16 +29,25 @@ window.app = Vue.createApp({
       return Math.min(1, remaining / totalMs)
     },
     progressLabel() {
-      if (!this.tunnel || !this.tunnel.expires_at) return 'No tunnel yet'
+      if (!this.tunnel || !this.tunnel.expires_at) {
+        return this.$t('tunnel_me_out.no_tunnel_yet')
+      }
       const exp = new Date(this.tunnel.expires_at)
-      return `Expires at ${exp.toLocaleString()}`
+      return this.$t('tunnel_me_out.expires_at_label', {
+        date: exp.toLocaleString()
+      })
     },
     expiresLabel() {
-      if (!this.tunnel || !this.tunnel.expires_at) return 'Not set'
+      if (!this.tunnel || !this.tunnel.expires_at) {
+        return this.$t('tunnel_me_out.not_set')
+      }
       return new Date(this.tunnel.expires_at).toLocaleString()
     }
   },
   methods: {
+    statusLabel(status) {
+      return this.$t(`tunnel_me_out.status_${status}`)
+    },
     async loadTunnel() {
       try {
         const {data} = await LNbits.api.request(
@@ -146,7 +155,10 @@ window.app = Vue.createApp({
           null
         )
         this.tunnel = data
-        this.$q.notify({type: 'positive', message: 'Tunnel reconnecting'})
+        this.$q.notify({
+          type: 'positive',
+          message: this.$t('tunnel_me_out.tunnel_reconnecting')
+        })
         this.reachable = true
       } catch (err) {
         this.reachable = false
@@ -158,12 +170,18 @@ window.app = Vue.createApp({
     copyInvoice() {
       if (!this.invoiceDialog.payment_request) return
       LNbits.utils.copyText(this.invoiceDialog.payment_request)
-      this.$q.notify({type: 'positive', message: 'Payment request copied'})
+      this.$q.notify({
+        type: 'positive',
+        message: this.$t('tunnel_me_out.payment_request_copied')
+      })
     },
     copyScript() {
       if (!this.tunnel || !this.tunnel.ssh_command) return
       LNbits.utils.copyText(this.tunnel.ssh_command)
-      this.$q.notify({type: 'positive', message: 'Command copied to clipboard'})
+      this.$q.notify({
+        type: 'positive',
+        message: this.$t('tunnel_me_out.command_copied')
+      })
     }
   },
   mounted() {
