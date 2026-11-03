@@ -2,9 +2,9 @@ import asyncio
 
 from fastapi import APIRouter
 from lnbits.tasks import create_permanent_unique_task
-from loguru import logger
 
 from .crud import db
+from .services import shutdown
 from .tasks import rehydrate_and_activate
 from .views import tunnel_router_frontend
 from .views_api import tunnel_router
@@ -28,12 +28,12 @@ def tunnel_me_out_start():
     scheduled_tasks.append(task)
 
 
-def tunnel_me_out_stop():
+async def tunnel_me_out_stop():
     for task in scheduled_tasks:
-        try:
-            task.cancel()
-        except Exception as ex:
-            logger.warning(ex)
+        task.cancel()
+    await asyncio.gather(*scheduled_tasks, return_exceptions=True)
+    scheduled_tasks.clear()
+    await shutdown()
 
 
 __all__ = [

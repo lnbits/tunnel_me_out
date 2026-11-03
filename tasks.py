@@ -1,5 +1,4 @@
 import asyncio
-import sqlite3
 
 from loguru import logger
 
@@ -7,22 +6,22 @@ from .crud import get_all_tunnels
 from .services import activate_tunnel, ensure_payment_listener
 
 
+async def reconcile_tunnels_once():
+    for tunnel in await get_all_tunnels():
+        try:
+            if tunnel.status == "pending":
+                ensure_payment_listener(tunnel.id, tunnel.payment_hash)
+            else:
+                await activate_tunnel(tunnel.id)
+        except Exception as exc:
+            # One unavailable server or broken key must not skip other tunnels.
+            logger.warning(f"tunnel_me_out: reconciliation failed for {tunnel.tunnel_id}: {exc}")
+
+
 async def rehydrate_and_activate():
     while True:
         try:
-            tunnels = await get_all_tunnels()
-            for t in tunnels:
-                if t.status == "pending":
-                    ensure_payment_listener(t.id, t.payment_hash)
-                    continue
-                if t.status == "active":
-                    await activate_tunnel(t.id)
-        except sqlite3.OperationalError as exc:
-            if "no such table: tunnel_me_out.tunnels" in str(exc):
-                # migrations not applied yet; skip quietly until next run
-                await asyncio.sleep(300)
-                continue
-            logger.error(f"tunnel_me_out: db error {exc}")
+            await reconcile_tunnels_once()
         except Exception as exc:
-            logger.error(f"tunnel_me_out: rehydrate error {exc}")
-        await asyncio.sleep(300)
+            logger.warning(f"tunnel_me_out: reconciliation failed: {exc}")
+        await asyncio.sleep(30)

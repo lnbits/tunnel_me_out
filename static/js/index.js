@@ -5,9 +5,8 @@ window.app = Vue.createApp({
   data: function () {
     return {
       days: 1,
-      localHost: 'localhost',
-      localPort: 5000,
-      wsBase: 'wss://lnbits.lnpro.xyz/api/v1/ws',
+      localHost: '',
+      localPort: null,
       loading: false,
       tunnel: null,
       reachable: null,
@@ -16,7 +15,8 @@ window.app = Vue.createApp({
         payment_request: '',
         payment_hash: ''
       },
-      ws: null
+      pollTimer: null,
+      disposed: false
     }
   },
   computed: {
@@ -39,7 +39,7 @@ window.app = Vue.createApp({
     }
   },
   methods: {
-    async loadTunnel() {
+    async loadTunnel(restoreInvoice = false) {
       try {
         const {data} = await LNbits.api.request(
           'GET',
@@ -54,10 +54,10 @@ window.app = Vue.createApp({
         if (this.tunnel && this.tunnel.status === 'pending') {
           this.invoiceDialog.payment_request = this.tunnel.payment_request
           this.invoiceDialog.payment_hash = this.tunnel.payment_hash
-          this.invoiceDialog.show = true
-          this.openWs()
-        } else if (this.tunnel && this.tunnel.status === 'active') {
-          this.checkReachability()
+          if (restoreInvoice) this.invoiceDialog.show = true
+        } else if (this.tunnel) {
+          this.invoiceDialog.show = false
+          await this.checkReachability()
         }
       } catch (err) {
         console.error(err)
@@ -82,8 +82,8 @@ window.app = Vue.createApp({
         this.localPort = this.tunnel.local_port || this.localPort
         this.invoiceDialog.payment_request = data.payment_request
         this.invoiceDialog.payment_hash = data.payment_hash
-        this.invoiceDialog.show = true
-        this.openWs()
+        this.invoiceDialog.show = data.status === 'pending'
+        this.schedulePoll()
         this.reachable = null
       } catch (err) {
         LNbits.utils.notifyApiError(err)
@@ -91,37 +91,16 @@ window.app = Vue.createApp({
         this.loading = false
       }
     },
-    async handlePaid() {
-      await this.loadTunnel()
-      this.invoiceDialog.show = false
-      this.invoiceDialog.payment_hash = ''
-      this.invoiceDialog.payment_request = ''
-      if (this.ws) {
-        this.ws.close()
-      }
-      this.reachable = true
-    },
-    openWs() {
-      if (this.ws) {
-        this.ws.close()
-      }
-      const hash = this.invoiceDialog.payment_hash
-      if (!hash) return
-      const url = `${this.wsBase}/${hash}`
-      this.ws = new WebSocket(url)
-      this.ws.onmessage = async msg => {
-        try {
-          const payload = JSON.parse(msg.data)
-          if (payload && (payload.paid || payload.status === 'success')) {
-            await this.handlePaid()
-          }
-        } catch (err) {
-          console.error(err)
-        }
-      }
-      this.ws.onclose = () => {
-        this.ws = null
-      }
+    schedulePoll() {
+      if (this.disposed) return
+      clearTimeout(this.pollTimer)
+      this.pollTimer = setTimeout(
+        async () => {
+          await this.loadTunnel()
+          this.schedulePoll()
+        },
+        this.tunnel?.status === 'pending' ? 5000 : 30000
+      )
     },
     async checkReachability() {
       this.reachable = null
@@ -147,7 +126,7 @@ window.app = Vue.createApp({
         )
         this.tunnel = data
         this.$q.notify({type: 'positive', message: 'Tunnel reconnecting'})
-        this.reachable = true
+        await this.checkReachability()
       } catch (err) {
         this.reachable = false
         LNbits.utils.notifyApiError(err)
@@ -167,11 +146,11 @@ window.app = Vue.createApp({
     }
   },
   mounted() {
-    this.loadTunnel()
+    this.loadTunnel(true)
+    this.schedulePoll()
   },
   beforeUnmount() {
-    if (this.ws) {
-      this.ws.close()
-    }
+    this.disposed = true
+    clearTimeout(this.pollTimer)
   }
 })

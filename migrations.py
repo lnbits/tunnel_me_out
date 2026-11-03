@@ -43,3 +43,7 @@ async def m003_local_binding(db):
         ADD COLUMN local_port INT NOT NULL DEFAULT 5000;
         """
     )
+
+
+async def m004_tunnel_error(db):
+    await db.execute("ALTER TABLE tunnel_me_out.tunnels ADD COLUMN last_error TEXT;")

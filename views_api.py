@@ -10,7 +10,7 @@ tunnel_router = APIRouter()
 
 @tunnel_router.get("/api/v1/tunnel", response_model=TunnelResponse)
 async def get_tunnel(user: User = Depends(check_super_user)) -> TunnelResponse:
-    tunnel = await fetch_existing(user.id, prune_pending=True)
+    tunnel = await fetch_existing(user.id)
     return TunnelResponse(tunnel=tunnel)
 
 

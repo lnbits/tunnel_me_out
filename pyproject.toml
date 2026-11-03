@@ -37,6 +37,7 @@ ignore_missing_imports = "True"
 
 [tool.pytest.ini_options]
 log_cli = false
+filterwarnings = ["error::pydantic.warnings.PydanticDeprecationWarning"]
 testpaths = [
   "tests"
 ]

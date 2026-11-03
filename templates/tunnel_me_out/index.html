@@ -10,8 +10,8 @@
       <q-card class="q-pa-md">
         <div class="text-h6">Tunnel Me Out</div>
         <div class="text-subtitle2 q-mt-sm">
-          Tunnel out your local LNbits and get a subdomain, only 200sats per
-          day!
+          Tunnel out your local LNbits and get a subdomain. The invoice shows
+          the price for your selected duration.
         </div>
         <div class="q-mt-md">
           <q-input
@@ -76,6 +76,9 @@
           <q-badge v-if="reachable === false" color="negative" class="q-ml-sm"
             >offline</q-badge
           >
+        </div>
+        <div v-if="tunnel.last_error" class="text-negative q-mt-sm">
+          ${tunnel.last_error}
         </div>
         <div class="q-mt-sm">
           Public URL:
