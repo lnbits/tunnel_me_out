@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from fastapi import Request
@@ -48,12 +48,14 @@ async def test_save_assigns_owner_and_preserves_creation_time(old_record, monkey
     saved = await crud.save_tunnel("owner", TunnelRecord.model_validate(old_record))
     assert saved.id == "owner"
     assert isinstance(saved.expires_at, datetime)
+    assert insert.await_args is not None
     assert insert.await_args.args[1] is saved
     monkeypatch.setattr(crud, "get_tunnel", AsyncMock(return_value=saved))
     edited = TunnelRecord.model_validate({**old_record, "last_error": "Connection refused"})
     updated = await crud.save_tunnel("owner", edited)
     assert updated.created_at == saved.created_at
     assert updated.last_error == "Connection refused"
+    assert update.await_args is not None
     assert update.await_args.args[1] is updated
 
 
@@ -62,8 +64,12 @@ async def test_frontend_serializes_user_for_template(monkeypatch):
     now = datetime.now(timezone.utc)
     user = User(id="owner", created_at=now, updated_at=now, super_user=True)
     request = Request({"type": "http", "method": "GET", "path": "/"})
-    renderer = SimpleNamespace(TemplateResponse=lambda name, context: context)
+    template_response = Mock()
+    renderer = SimpleNamespace(TemplateResponse=template_response)
     monkeypatch.setattr(views, "tunnel_renderer", lambda: renderer)
-    context = await views.index(request, user)
+    await views.index(request, user)
+    template_response.assert_called_once()
+    assert template_response.call_args is not None
+    context = template_response.call_args.args[1]
     assert json.loads(context["user"])["id"] == user.id
     assert User.model_validate_json(context["user"]).created_at == now

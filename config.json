@@ -1,5 +1,6 @@
 {
   "id": "tunnel_me_out",
+  "admin_only": true,
   "version": "0.1.0",
   "name": "TunnelMeOut",
   "repo": "https://github.com/lnbits/tunnel_me_out",
