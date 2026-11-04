@@ -69,7 +69,6 @@ process group on an unclean restart to avoid orphaned SSH sessions.
 The paired Reverse Proxy README documents server SSH account permissions, Caddy
 setup, recovery of older mismatched keys, and regression test commands.
 
-
 ## Testing both extensions locally
 
 Keep this checkout next to `reverse_proxy` and run from their parent directory:
@@ -85,7 +84,6 @@ and expiry. Install `ssh`, `ssh-keygen`, and `sshd`; the test skips if the serve
 binary is unavailable. Lightning invoices, superuser login and the Caddy reload
 are simulated. No real payment, hosted tunnel provider, or production service is
 used. See the paired test section of the Reverse Proxy README for details.
-
 
 ### Pydantic 2 compatibility
 
