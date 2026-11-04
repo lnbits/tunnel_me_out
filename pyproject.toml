@@ -1,6 +1,6 @@
 [project]
 name = "reverse_proxy"
-version = "0.1.0"
+version = "0.1.1"
 requires-python = ">=3.10,<3.14"
 description = "<<Internal extension for allowing ssh tunnels>>"
 authors = []
