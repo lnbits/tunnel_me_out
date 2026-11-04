@@ -47,7 +47,8 @@ window.app = Vue.createApp({
           null
         )
         this.tunnel = data.tunnel
-        if (this.tunnel) {
+        // Restore saved inputs on page load; polling must preserve edits.
+        if (this.tunnel && restoreInvoice) {
           this.localHost = this.tunnel.local_host || this.localHost
           this.localPort = this.tunnel.local_port || this.localPort
         }

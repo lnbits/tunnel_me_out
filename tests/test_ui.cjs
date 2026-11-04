@@ -77,3 +77,16 @@ test('a poll finishing after unmount does not start another timer', async () => 
   await timers[0]()
   assert.equal(timers.length, 1)
 })
+
+test('polling updates status without overwriting unsaved local binding edits', async () => {
+  const saved = {status: 'pending', local_host: 'localhost', local_port: 5000}
+  const {instance} = app([{tunnel: saved}, {tunnel: saved}])
+  await instance.loadTunnel(true)
+  assert.equal(instance.localHost, 'localhost')
+  assert.equal(instance.localPort, 5000)
+  instance.localHost = '192.168.1.10'
+  instance.localPort = 9001
+  await instance.loadTunnel()
+  assert.equal(instance.localHost, '192.168.1.10')
+  assert.equal(instance.localPort, 9001)
+})

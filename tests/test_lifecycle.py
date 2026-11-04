@@ -254,3 +254,48 @@ async def test_ssh_startup_failure_is_reported(tunnel, monkeypatch):
     with pytest.raises(RuntimeError, match="Permission denied"):
         await services._launch_ssh(tunnel, "/tmp/key", "/tmp/known")
     assert not services._ssh_processes
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tunnel_exists", [True, False])
+async def test_missing_pending_status_recovers_without_unnecessary_key_replacement(
+    local_store, monkeypatch, tunnel_exists
+):
+    request = httpx.Request("GET", "https://example.com/status")
+    missing = httpx.HTTPStatusError("missing", request=request, response=httpx.Response(404, request=request))
+    monkeypatch.setattr(services, "_remote_status", AsyncMock(side_effect=missing))
+    topup = AsyncMock(return_value={"payment_hash": "new-hash", "payment_request": "new-invoice"})
+    if not tunnel_exists:
+        topup.side_effect = missing
+    monkeypatch.setattr(services, "_remote_topup", topup)
+    replacement = local_store[0].model_copy(update={"tunnel_id": "replacement", "ssh_private_key": "new-key"})
+    create = AsyncMock(return_value=replacement)
+    delete = AsyncMock()
+    monkeypatch.setattr(services, "_remote_create", create)
+    monkeypatch.setattr(services, "delete_tunnel", delete)
+    result = await services.create_or_topup("owner", 3)
+    topup.assert_awaited_once_with("tunnel", 3)
+    if tunnel_exists:
+        assert result.tunnel_id == "tunnel"
+        assert result.ssh_private_key == "test-private-key"
+        assert result.payment_hash == "new-hash"
+        create.assert_not_awaited()
+        delete.assert_not_awaited()
+    else:
+        assert result.tunnel_id == "replacement"
+        create.assert_awaited_once_with("owner", 3, None, None)
+        delete.assert_awaited_once_with("owner", "tunnel")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [401, 500])
+async def test_pending_status_failure_preserves_reservation(local_store, monkeypatch, status):
+    request = httpx.Request("GET", "https://example.com/status")
+    error = httpx.HTTPStatusError("failed", request=request, response=httpx.Response(status, request=request))
+    monkeypatch.setattr(services, "_remote_status", AsyncMock(side_effect=error))
+    topup = AsyncMock()
+    monkeypatch.setattr(services, "_remote_topup", topup)
+    with pytest.raises(httpx.HTTPStatusError):
+        await services.create_or_topup("owner", 3)
+    topup.assert_not_awaited()
+    assert local_store[0].ssh_private_key == "test-private-key"

@@ -117,13 +117,20 @@ async def create_or_topup(
     async with _lifecycle_lock:
         existing = await get_tunnel(user_id)
         if existing and existing.status == "pending":
-            state = await _remote_status(existing)
-            # Repeated clicks return the same unpaid invoice and key. Settled
-            # invoices must be reconciled before a new payment replaces the hash.
-            if not state.get("invoice_expired") or state.get("paid"):
-                await _reconcile(existing, state)
-                ensure_payment_listener(user_id, existing.payment_hash)
-                return existing
+            try:
+                state = await _remote_status(existing)
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code != 404:
+                    raise
+                # The invoice or tunnel may have been removed. Try topping up
+                # first so a missing invoice does not discard a valid SSH key.
+            else:
+                # Repeated clicks return the same unpaid invoice and key. Settled
+                # invoices must be reconciled before a new payment replaces the hash.
+                if not state.get("invoice_expired") or state.get("paid"):
+                    await _reconcile(existing, state)
+                    ensure_payment_listener(user_id, existing.payment_hash)
+                    return existing
         if existing:
             try:
                 pay = await _remote_topup(existing.tunnel_id, days)
