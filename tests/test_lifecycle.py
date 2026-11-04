@@ -3,12 +3,12 @@ import os
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import httpx
 import pytest
 import pytest_asyncio
+from lnbits.core.models import User
 
 from .. import services, tasks, views_api
 from ..models import TunnelRecord
@@ -56,7 +56,14 @@ async def isolate():
 
 
 @pytest.fixture
-def local_store(tunnel, monkeypatch):
+def launch_ssh(monkeypatch):
+    launch = AsyncMock()
+    monkeypatch.setattr(services, "_launch_ssh", launch)
+    return launch
+
+
+@pytest.fixture
+def local_store(tunnel, monkeypatch, launch_ssh):
     current = [tunnel.model_copy(deep=True)]
 
     async def get(user):
@@ -70,14 +77,16 @@ def local_store(tunnel, monkeypatch):
     monkeypatch.setattr(services, "get_tunnel", get)
     monkeypatch.setattr(services, "save_tunnel", save)
     monkeypatch.setattr(services, "_write_key", lambda *args: ("/tmp/test-key", "/tmp/known-hosts"))
-    monkeypatch.setattr(services, "_launch_ssh", AsyncMock())
     monkeypatch.setattr(services, "ensure_payment_listener", lambda *args: None)
     return current
 
 
 @pytest.mark.asyncio
 async def test_refresh_preserves_pending_invoice_and_key(local_store):
-    response = await views_api.get_tunnel(user=SimpleNamespace(id="owner"))
+    now = datetime.now(timezone.utc)
+    user = User(id="owner", created_at=now, updated_at=now, super_user=True)
+    response = await views_api.get_tunnel(user=user)
+    assert response.tunnel is not None
     assert response.tunnel.status == "pending"
     assert response.tunnel.payment_hash == "hash"
     assert response.tunnel.ssh_private_key == "test-private-key"
@@ -102,6 +111,9 @@ async def test_reconnect_and_duplicate_confirmation_copy_server_expiry(local_sto
     first = await services.activate_tunnel("owner", "hash")
     second = await services.activate_tunnel("owner", "hash")
     third = await services.activate_tunnel("owner")
+    assert first is not None
+    assert second is not None
+    assert third is not None
     assert first.expires_at == second.expires_at == third.expires_at
     assert third.expires_at.isoformat() == state["expires_at"]
     assert third.status == "active"
@@ -117,21 +129,23 @@ async def test_stale_hash_or_other_user_cannot_activate(local_store, monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_unpaid_confirmation_cannot_activate(local_store, state, monkeypatch):
+async def test_unpaid_confirmation_cannot_activate(local_store, state, monkeypatch, launch_ssh):
     state.update(paid=False, ready=False, status="pending")
     monkeypatch.setattr(services, "_remote_status", AsyncMock(return_value=state))
     result = await services.activate_tunnel("owner", "hash")
+    assert result is not None
     assert result.status == "pending"
-    services._launch_ssh.assert_not_awaited()
+    launch_ssh.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_pending_renewal_keeps_existing_entitlement(local_store, state, monkeypatch):
+async def test_pending_renewal_keeps_existing_entitlement(local_store, state, monkeypatch, launch_ssh):
     state.update(paid=False, ready=False)
     monkeypatch.setattr(services, "_remote_status", AsyncMock(return_value=state))
     result = await services.activate_tunnel("owner")
+    assert result is not None
     assert result.status == "pending"
-    services._launch_ssh.assert_awaited_once()
+    launch_ssh.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -155,6 +169,8 @@ async def test_launch_failure_is_saved_for_user(local_store, state, monkeypatch)
         AsyncMock(side_effect=RuntimeError("Permission denied (publickey)")),
     )
     result = await services.activate_tunnel("owner")
+    assert result is not None
+    assert result.last_error is not None
     assert "Permission denied" in result.last_error
     assert local_store[0].last_error == result.last_error
 

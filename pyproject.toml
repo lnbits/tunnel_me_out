@@ -15,7 +15,9 @@ python = ">=3.10,<3.13"
 
 [tool.uv]
 build-constraint-dependencies = ["scikit-build-core<0.10"]
-dev-dependencies = [
+
+[dependency-groups]
+dev = [
     "black>=24.3.0",
     "pytest-asyncio>=0.21.0",
     "pytest>=7.3.2",

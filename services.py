@@ -134,6 +134,12 @@ async def create_or_topup(
         if existing:
             try:
                 pay = await _remote_topup(existing.tunnel_id, days)
+                _cancel_payment_listener(existing.payment_hash)
+                existing.payment_hash = pay["payment_hash"]
+                existing.payment_request = pay["payment_request"]
+                existing.days = days
+                existing.status = "pending"
+                _apply_local_binding(existing, local_host, local_port)
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code != 404:
                     raise
@@ -142,12 +148,6 @@ async def create_or_topup(
                 await delete_tunnel(user_id, existing.tunnel_id)
                 existing = None
         if existing:
-            _cancel_payment_listener(existing.payment_hash)
-            existing.payment_hash = pay["payment_hash"]
-            existing.payment_request = pay["payment_request"]
-            existing.days = days
-            existing.status = "pending"
-            _apply_local_binding(existing, local_host, local_port)
             tunnel = existing
         else:
             tunnel = await _remote_create(user_id, days, local_host, local_port)
