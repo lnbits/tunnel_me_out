@@ -1,13 +1,13 @@
 {
   "id": "tunnel_me_out",
   "admin_only": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "name": "TunnelMeOut",
   "repo": "https://github.com/lnbits/tunnel_me_out",
   "short_description": "One-click tunnel out via lnpro.xyz",
   "description": "",
   "tile": "/tunnel_me_out/static/image/tunnel.png",
-  "min_lnbits_version": "1.7.0-rc1",
+  "min_lnbits_version": "1.7.0",
   "contributors": [
     {
       "name": "LNbits community",
